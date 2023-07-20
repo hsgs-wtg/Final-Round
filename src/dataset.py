@@ -28,4 +28,8 @@ class Dataset:
 
             self.names = dict([worker[1], int(worker[0])] for worker in _names)
 
-            self.workers_count = len(self.names)
+            self.workers_count = len(self.names) 
+
+
+
+    
