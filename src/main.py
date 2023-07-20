@@ -41,6 +41,7 @@ def run(model, vars):
         model.addConstr(vars[:, shift, :, :] == vars.x[:, shift, :, :])
 
 def print_output(result):
+    result.sort(key = lambda x: x[1])
     for assignment in result:
         person, shift, pipeline, job = assignment
         day, group = shift // 3, shift % 3

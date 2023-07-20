@@ -8,3 +8,7 @@ SHIFTS = 28 * 3
 JOBS = 3 
 
 JOBLIST = ["Rot", "Pallet", "May_dong_hop"]
+
+# --- Parameters --- #
+
+WAGE = (1600, 10)
