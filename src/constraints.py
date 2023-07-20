@@ -16,15 +16,15 @@ def constraint_night_shift(model, vars):
 # Constraint 3: A person can only do one shift in one day
 
 def constraint_one_shift(model, vars):
-    shifts1 = vars[:, 0::3].sum(axis=-1)
-    shifts2 = vars[:, 1::3].sum(axis=-1)
-    shifts3 = vars[:, 2::3].sum(axis=-1)
+    shifts1 = vars[:, 0::3].sum(axis=(-1, -2))
+    shifts2 = vars[:, 1::3].sum(axis=(-1, -2))
+    shifts3 = vars[:, 2::3].sum(axis=(-1, -2))
     model.addConstr(shifts1 + shifts2 + shifts3 <= 1)
 
 # Constraint 4: A person can only work in 24 days
 
 def constraint_24_days(model, vars):
-    persons = vars.sum(axis=(1, 2))
+    persons = vars.sum(axis=(2, 3))
     model.addConstr(persons <= 24)
 
 # Resolve constraints
