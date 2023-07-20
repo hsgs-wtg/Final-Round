@@ -104,12 +104,14 @@ struct Pipeline{
         fclose(ptr);
     }
     void read_skills(int index, int job){
-        const char* filename = (FILE_DIR + "ky_nang_Day_chuyen_" + to_string(index+1) + "_" + JOBS[job] + ".txt").c_str();
+        string f = FILE_DIR + "ky_nang_Day_chuyen_" + to_string(index+1) + "_" + JOBS[job] + ".txt";
+        const char* filename = f.c_str();
         FILE* ptr = fopen(filename, "r");
         
         int id;
 
-        while(fscanf(ptr, "V%d", &id) > 0){
+        while(fscanf(ptr, "V%d\n", &id) > 0){
+            cout << "V" << id << " " << index << " " << job << "\n";
             A[id-1][index][job] = 1;
         }
 
@@ -119,16 +121,20 @@ struct Pipeline{
     //
 
     bool check_suitable_job(){
+        bool good = true;
         for(int i = 0; i < x.size(); i++){
             for(int j = 0; j < SHIFT_COUNT; j++){
                 for(int k = 0; k < PIPELINE_COUNT; k++){
                     for(int l = 0; l < REQUIREMENT_COUNT; l++){
-                        if(x[i][j][k][l] > A[i][k][l])return false;
+                        if(x[i][j][k][l] > A[i][k][l]){
+                            cout << i << " " << j << " " << k << " " << l << endl;
+                            good = false;
+                        }
                     }
                 }
             }
         }
-        return true;
+        return good;
     }
 
     bool check_night_shift(){
