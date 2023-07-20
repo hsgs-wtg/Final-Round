@@ -15,12 +15,15 @@ def load_input():
     global data
     data = Dataset("duLieu1")
 
+    print(data.names)
+
 def main():
     load_input()
+    return
 
     model = gp.Model("job_scheduling_01")
     
-    vars = model.addMVar(shape = (data.workers, SHIFTS, JOBS), vtype = GRB.BINARY)
+    vars = model.addMVar(shape = (data.workers_count, SHIFTS, JOBS), vtype = GRB.BINARY)
     resolve_constraints(model, vars, data)
 
 if __name__ == "__main__":
