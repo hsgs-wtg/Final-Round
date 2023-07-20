@@ -1,5 +1,5 @@
 import numpy as np
-from consts import SHIFTS
+from consts import SHIFTS, JOBS
 
 # Constraint 1: A person can only do jobs he knows
 
@@ -26,6 +26,18 @@ def constraint_one_shift(model, vars):
 def constraint_24_days(model, vars):
     persons = vars.sum(axis=(2, 3))
     model.addConstr(persons <= 24)
+
+# Constraint 5: There must be enough people
+
+def constraint_cardinality(model, vars, data) -> list[tuple]:
+    for pipeline_idx in range(data.pipeline):
+        for shift in range(SHIFTS):
+            t = data.shift_time[pipeline_idx][shift]
+            if t == 0: continue
+            for job_idx in range(JOBS):
+                people = vars[data.with_skills[pipeline_idx][job_idx],
+                                shift, job_idx]
+                print(people.shape)
 
 # Resolve constraints
 
