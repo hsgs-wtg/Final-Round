@@ -19,6 +19,7 @@ class Dataset:
         self.names = {}
         self.hourly_wage = 0
         self.with_skills = []
+        self.starting_wage = 0
 
         self.load_input()
 

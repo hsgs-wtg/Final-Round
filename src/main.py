@@ -20,14 +20,25 @@ def load_input():
     print(data.skills)
     print(data.shift_time)
 
+def create_aux_vars(model, vars):
+    hire_vars = model.addMVar(shape = (data.workers_count), vtype = GRB.BINARY)
+    
+    model.addConstrs(hire_vars[i] == gp.or_(vars[i].reshape(-1).tolist()) for i in range(data.workers_count))
+
+    return hire_vars
+
+
 def main():
     load_input()
 
     model = gp.Model("job_scheduling_01")
     
     vars = model.addMVar(shape = (data.workers_count, SHIFTS, data.pipeline, JOBS), vtype = GRB.BINARY)
+
+    vars_auxiliary = create_aux_vars(model, vars)
+
     resolve_constraints(model, vars, data)
-    add_objective_func(model, vars, data)
+    add_objective_func(model, vars, vars_auxiliary, data)
 
     model.optimize()
 
