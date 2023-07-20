@@ -13,10 +13,9 @@ class Dataset:
 
         self.workers_count = 0
         self.skills = []
-
         self.shift_time = []
-
         self.names = {}
+        self.hourly_wage = 0
 
         self.load_input()
 
