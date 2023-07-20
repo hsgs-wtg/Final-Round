@@ -29,13 +29,18 @@ def run(model, vars):
     for shift in range(SHIFTS):
         # Check if this is the last shift of the day
         if shift % 3 == 0:
-            while r < shift + D:
+            while r < shift + D and r < SHIFTS:
                 # Load r
                 constraint_cardinality(model, vars, data, r)
                 r += 1
 
         # Process current shift
         model.optimize()
+
+        # Check for error code
+        if model.status == GRB.INFEASIBLE:
+            print("Model cannot be solved")
+            exit(0)
 
         # Lock current choice
         model.addConstr(vars[:, shift, :, :] == vars.x[:, shift, :, :])

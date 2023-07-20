@@ -9,8 +9,8 @@ def constraint_suitable_jobs(model, vars, skills):
 # Constraint 2: A person cannot work right after the night shift
 
 def constraint_night_shift(model, vars):
-    night_shifts = vars[:, 2:vars.shape[1]-1:3].sum(axis=-1)
-    first_shifts = vars[:, 5::3].sum(axis=-1)
+    night_shifts = vars[:, 2:vars.shape[1]-1:3].sum(axis = (-1, -2))
+    first_shifts = vars[:, 3::3].sum(axis = (-1, -2))
     model.addConstr(night_shifts + first_shifts <= 1)
 
 # Constraint 3: A person can only do one shift in one day
@@ -24,9 +24,8 @@ def constraint_one_shift(model, vars):
 # Constraint 4: A person can only work in 24 days
 
 def constraint_24_days(model, vars):
-    persons = vars.sum(axis=(2, 3))
-    ps = persons.shape
-    model.addConstr(persons <= np.array([ALLOWED_DAYS for _ in range(ps[0] * ps[1])]).reshape([ps[0], ps[1]]))
+    persons = vars.sum(axis=(1, 2, 3))
+    model.addConstr(persons <= ALLOWED_DAYS)
 
 # Constraint 5: There must be enough people
 
