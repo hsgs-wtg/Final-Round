@@ -17,6 +17,7 @@ def load_input():
 
     print(data.names)
     print(data.skills)
+    print(data.shift_time)
 
 def main():
     load_input()

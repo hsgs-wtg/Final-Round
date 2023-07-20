@@ -1,4 +1,4 @@
-from consts import data_root_path, JOBS, JOBLIST
+from consts import data_root_path, JOBS, JOBLIST, SHIFTS
 
 class Dataset:
     def __init__(self, folder):
@@ -43,28 +43,32 @@ class Dataset:
                         worker = self.names[worker_name]
                         self.skills[worker][job_idx] = 1
 
-        #Load time of pipelines from lenh_san_xuat_Day_chuyen_1.txt
-        with open(self.data_path / "lenh_san_xuat_Day_chuyen_1.txt", "r") as f:
-            f.readline() # Comment line
-            _time = [line.strip().split() for line in f.readlines()]
-            
-            shift_start_time = [6,14,22]
-
-            self.shift_time = [0 for i in range(3*28)]
-
-            for i in range(len(_time)):
+        #Load time of pipelines from lenh_san_xuat_Day_chuyen_?.txt
+        for pipeline_idx in range(1, self.pipeline+1):
+            with open(self.data_path / f"lenh_san_xuat_Day_chuyen_{pipeline_idx}.txt", "r") as f:
+                f.readline() # Comment line
+                _time = [line.strip().split() for line in f.readlines()]
                 
-                start_day = int(_time[i][0][8:10])
-                start_hour = int(_time[i][1][0:2])
+                shift_start_time = [6,14,22]
 
-                end_day = int(_time[i][2][8:10])
-                end_hour = int(_time[i][3][0:2])
+                self.shift_time = [0]*SHIFTS
 
-                if(end_day > start_day):
-                    end_hour += 24
+                for i in range(len(_time)):
+                    
+                    start_day = int(_time[i][0][8:10])
+                    start_hour = int(_time[i][1][0:2])
 
-                for i in range(3):
-                    st = shift_start_time[i]
-                    en = shift_start_time[(i+1)%3]+(i==2)*24
+                    end_day = int(_time[i][2][8:10])
+                    end_hour = int(_time[i][3][0:2])
 
-                    self.shift_time[3*(start_day-1)+i] += max(0,min(en,end_hour)-max(st,start_hour))   
+                    if(end_day > start_day):
+                        end_hour += 24
+
+                    if(start_hour<shift_start_time[0]):
+                        self.shift_time[3*(start_day-2)+2] += shift_start_time[0]-start_hour
+
+                    for i in range(3):
+                        st = shift_start_time[i]
+                        en = shift_start_time[(i+1)%3]+(i==2)*24
+
+                        self.shift_time[3*(start_day-1)+i] += max(0,min(en,end_hour)-max(st,start_hour))   
