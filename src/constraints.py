@@ -25,7 +25,8 @@ def constraint_one_shift(model, vars):
 
 def constraint_24_days(model, vars):
     persons = vars.sum(axis=(2, 3))
-    model.addConstr(persons <= ALLOWED_DAYS)
+    ps = persons.shape
+    model.addConstr(persons <= np.array([ALLOWED_DAYS for _ in range(ps[0] * ps[1])]).reshape([ps[0], ps[1]]))
 
 # Constraint 5: There must be enough people
 
