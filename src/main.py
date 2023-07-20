@@ -16,6 +16,7 @@ def load_input():
     data = Dataset("duLieu1")
 
     print(data.names)
+    print(data.skills)
 
 def main():
     load_input()

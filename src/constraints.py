@@ -1,9 +1,10 @@
 import numpy as np
+from consts import SHIFTS
 
 # Constraint 1: A person can only do jobs he knows
 
 def constraint_suitable_jobs(model, vars, skills):
-    model.addConstr(vars.min(axis = 1) <= np.array(skills))
+    model.addConstr(vars.sum(axis = 1) <= np.array(skills) * SHIFTS)
     
 # Constraint 2: A person cannot work right after the night shift
 
