@@ -1,5 +1,5 @@
 import numpy as np
-from consts import data_root_path, JOBS, JOBLIST, SHIFTS
+from consts import data_root_path, JOBS, JOBLIST, SHIFTS, WAGE
 
 
 class Dataset:
@@ -17,9 +17,9 @@ class Dataset:
         self.skills = []
         self.shift_time = []
         self.names = {}
-        self.hourly_wage = 0
         self.with_skills = []
-        self.starting_wage = 0
+        self.starting_wage = WAGE[0]
+        self.hourly_wage = WAGE[1]
 
         self.load_input()
 
