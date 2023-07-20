@@ -25,7 +25,7 @@ def main():
 
     model = gp.Model("job_scheduling_01")
     
-    vars = model.addMVar(shape = (data.workers_count, SHIFTS, JOBS), vtype = GRB.BINARY)
+    vars = model.addMVar(shape = (data.workers_count, SHIFTS, data.pipeline, JOBS), vtype = GRB.BINARY)
     resolve_constraints(model, vars, data)
     add_objective_func(model, vars, data)
 

@@ -32,7 +32,11 @@ class Dataset:
             self.names = dict([worker[1], int(worker[0]) - 1] for worker in _names)
 
             self.workers_count = len(self.names)
-            self.skills = [[0] * JOBS for _ in range(self.workers_count)]
+            self.skills = [
+                [
+                    [0] * JOBS for _ in range(self.pipeline)
+                ] for _ in range(self.workers_count)
+            ]
 
         self.with_skills = [[[] for _ in range(JOBS)] for _ in range(self.pipeline)]
         # Load skills of workers from ky_nang_Day_chuyen_?_?.txt
@@ -43,6 +47,7 @@ class Dataset:
                     worker_list = [line.strip() for line in f.readlines()]
                     for worker_name in worker_list:
                         worker = self.names[worker_name]
+                        self.skills[worker][pipeline_idx - 1][job_idx] = 1
                         self.skills[worker][job_idx] = 1
                     
                     for worker_name in worker_list:
