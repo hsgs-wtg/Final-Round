@@ -19,7 +19,9 @@ def load_input():
 def create_aux_vars(model, vars):
     hire_vars = model.addMVar(shape = (data.workers_count), vtype = GRB.BINARY)
     
-    model.addConstrs(hire_vars[i] == gp.or_(vars[i].reshape(-1).tolist()) for i in range(data.workers_count))
+    model.addConstr(
+        hire_vars * (10 ** 6) >= vars.sum(axis = (1, 2, 3))
+    )
 
     return hire_vars
 
