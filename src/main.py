@@ -44,11 +44,11 @@ def run(model, vars, vars_auxiliary):
             print("Solution not found")
             exit(0)
 
-        acp = get_acceptance_function(model, vars, vars_auxiliary)    
-        result = optimize_delta(model, vars, vars_auxiliary, acp)
+        # acp = get_acceptance_function(model, vars, vars_auxiliary)    
+        # result = optimize_delta(model, vars, vars_auxiliary, acp)
 
         # Lock current choice
-        model.addConstr(vars[:, shift, :, :] == (result[:, shift, :, :] + 0.2).astype(int))
+        model.addConstr(vars[:, shift, :, :] == (vars.x[:, shift, :, :] + 0.2).astype(int))
 
 def print_output(result, filename = "result.txt"):
     result.sort(key = lambda x: x[1])
@@ -87,7 +87,7 @@ def main():
     load_input(test, subtask)
 
     env = gp.Env(empty = True)
-    env.setParam('OutputFlag', 0)
+    # env.setParam('OutputFlag', 0)
     env.start()
     model = gp.Model(f"job_scheduling_{test}_{subtask}", env = env)
 
