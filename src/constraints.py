@@ -27,6 +27,11 @@ def constraint_24_days(model, vars):
     persons = vars.sum(axis=(1, 2))
     model.addConstr(persons <= 24)
 
+# Constraint 5: Fired worker 
+def constraint_xxx(model, vars, shift_time):
+    pass
+
+
 # Resolve constraints
 
 def resolve_constraints(model, vars, data):
