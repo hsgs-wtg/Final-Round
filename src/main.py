@@ -44,7 +44,6 @@ def optimize_delta(model, vars, vars_auxiliary, acp):
         ub = avg_dissat + delta/2
 
         constrs = []
-        # constr_ub = model.addConstrs(((df <= ub) for df in dissat_functions))
         for df in dissat_functions:
             constrs.append(
                 model.addConstr(df <= ub)
