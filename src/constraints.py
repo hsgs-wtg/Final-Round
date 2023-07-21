@@ -45,4 +45,5 @@ def resolve_constraints(model, vars, data):
     constraint_suitable_jobs(model, vars, data.skills)
     constraint_night_shift(model, vars)
     constraint_one_shift(model, vars)
-    constraint_24_days(model, vars)
+    if (data.subtask == "b"):
+        constraint_24_days(model, vars)
