@@ -33,12 +33,14 @@ shift_dissat = generate_dissat()
 
 def calculate_dissat(vars):
     dissat = vars.sum(axis=(2, 3))@shift_dissat
+    # print(f"{dissat=}")
     return dissat
 
 
 def exclude_dissat(dissat, vars_auxiliary):
     hired = (vars_auxiliary.x + 0.2).astype(int).nonzero()
     dissat_active = dissat[hired]
+    print("DEBUG:", vars_auxiliary.x, dissat_active)
     return dissat_active, dissat_active.shape[0]
 
 
@@ -57,14 +59,16 @@ def optimize_delta(model, vars, vars_auxiliary, acp):
         iteration += 1
         print(f"{iteration = }")
         avg_dissat, min_dissat, max_dissat = dissat_stats(vars.x, vars_auxiliary)
-        print(dissat_stats(vars.x, vars_auxiliary))
+        # print(dissat_stats(vars.x, vars_auxiliary))
         delta = (max_dissat - min_dissat) * .9
 
         lb = avg_dissat - delta/2
         ub = avg_dissat + delta/2
 
-        constr_lb = model.addConstr(dissat_functions >= lb)
-        constr_ub = model.addConstr(dissat_functions <= ub)
+        hired = (vars_auxiliary.x + 0.2).astype(int)
+
+        constr_lb = model.addConstr(dissat_functions >= lb * hired)
+        constr_ub = model.addConstr(dissat_functions <= ub * hired)
         model.optimize()
         model.remove((constr_lb, constr_ub))
 
@@ -82,8 +86,8 @@ def optimize_delta(model, vars, vars_auxiliary, acp):
 
 # Should have called model.optimize() first
 def get_acceptance_function(model, vars, vars_auxiliary):
-    cost = model.objVal
+    cost = model.ObjVal
     max_allowed_cost = cost * 1.1
     def acp():
-        return model.objVal <= max_allowed_cost
+        return model.ObjVal <= max_allowed_cost
     return acp

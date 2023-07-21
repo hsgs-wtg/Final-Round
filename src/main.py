@@ -36,13 +36,13 @@ def run(model, vars, vars_auxiliary):
                 constraint_cardinality(model, vars, data, r)
                 r += 1
 
-            # Process current shift
-            model.optimize()
+        # Process current shift
+        model.optimize()
 
-            # Check for error code
-            if model.status == GRB.INFEASIBLE:
-                print("Solution not found")
-                exit(0)
+        # Check for error code
+        if model.status == GRB.INFEASIBLE:
+            print("Solution not found")
+            exit(0)
 
         acp = get_acceptance_function(model, vars, vars_auxiliary)    
         result = optimize_delta(model, vars, vars_auxiliary, acp)
@@ -100,6 +100,7 @@ def main():
 
     run(model, vars, vars_auxiliary)
 
+    model.optimize()
     result = (vars.x + 0.2).astype(int).nonzero()
     result_zip = list(zip(*result))
 

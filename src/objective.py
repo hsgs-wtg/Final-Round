@@ -16,4 +16,7 @@ def add_objective_func(model, vars, vars_aux, data):
     starting_expr = add_constant_wage(model, vars_aux, data)
     hourly_expr = add_hourly_wage(model, vars, data)
 
-    model.setObjective(starting_expr + hourly_expr, GRB.MINIMIZE)
+    if data.subtask == "a":
+        pass
+    else:
+        model.setObjective(starting_expr + hourly_expr, GRB.MINIMIZE)
