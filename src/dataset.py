@@ -3,9 +3,12 @@ from consts import data_root_path, JOBS, JOBLIST, SHIFTS, WAGE
 
 
 class Dataset:
-    def __init__(self, folder):
+    def __init__(self, folder, subtask):
         assert folder in ("duLieu1", "duLieu2")
+        assert subtask in ("a", "b")
+
         self.data_path = data_root_path / folder
+        self.subtask = subtask
 
         pipelines = {
             "duLieu1": 1,

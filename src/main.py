@@ -14,7 +14,7 @@ data = None
 def load_input():
     # Modify data
     global data
-    data = Dataset("duLieu1")
+    data = Dataset("duLieu1", "b")
 
 def create_aux_vars(model, vars):
     hire_vars = model.addMVar(shape = (data.workers_count), vtype = GRB.BINARY)
