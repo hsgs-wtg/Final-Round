@@ -8,6 +8,7 @@ from dataset import Dataset
 
 from constraints import resolve_constraints, constraint_cardinality
 from objective import add_objective_func
+from balance import calculate_dissat
 
 data = None
 
@@ -18,11 +19,7 @@ def load_input():
 
 def create_aux_vars(model, vars):
     hire_vars = model.addMVar(shape = (data.workers_count), vtype = GRB.BINARY)
-    
-    model.addConstr(
-        hire_vars * 24 >= vars.sum(axis = (1, 2, 3))
-    )
-
+    model.addConstr(hire_vars * 24 >= vars.sum(axis = (1, 2, 3)))
     return hire_vars
 
 def run(model, vars):
@@ -53,7 +50,7 @@ def print_output(result):
         person, shift, pipeline, job = assignment
         day, group = shift // 3, shift % 3
         print(f"{day+1:02d}.06.2023 Ca_{group+1} V{person+1:02d} Day_chuyen_{pipeline+1} {JOBLIST[job]}")
-    
+
 def main():
     load_input()
 
