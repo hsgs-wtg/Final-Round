@@ -43,7 +43,7 @@ def run(model, vars):
 
             # Check for error code
             if model.status == GRB.INFEASIBLE:
-                print("Model cannot be solved")
+                print("Solution not found")
                 exit(0)
 
         # Lock current choice
@@ -102,7 +102,10 @@ def main():
     result = (vars.x + 0.2).astype(int).nonzero()
     result_zip = list(zip(*result))
 
-    print_output(result_zip, f"result_data_{test}_part_{subtask}.txt")
+    filename = f"result_data_{test}_part_{subtask}.txt"
+    print_output(result_zip, filename)
+
+    print(f"A solution is found (stored in {filename})")
 
 
 if __name__ == "__main__":
