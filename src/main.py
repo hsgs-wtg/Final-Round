@@ -20,7 +20,7 @@ def create_aux_vars(model, vars):
     hire_vars = model.addMVar(shape = (data.workers_count), vtype = GRB.BINARY)
     
     model.addConstr(
-        hire_vars * (10 ** 6) >= vars.sum(axis = (1, 2, 3))
+        hire_vars * 24 >= vars.sum(axis = (1, 2, 3))
     )
 
     return hire_vars
@@ -45,7 +45,7 @@ def run(model, vars):
             exit(0)
 
         # Lock current choice
-        model.addConstr(vars[:, shift, :, :] == vars.x[:, shift, :, :])
+        model.addConstr(vars[:, shift, :, :] == (vars.x[:, shift, :, :] + 0.2).astype(int))
 
 def print_output(result):
     result.sort(key = lambda x: x[1])
