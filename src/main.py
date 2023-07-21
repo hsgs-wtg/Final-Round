@@ -8,7 +8,7 @@ from dataset import Dataset
 
 from constraints import resolve_constraints, constraint_cardinality
 from objective import add_objective_func
-from balance import calculate_dissat
+from balance import optimize_delta, get_acceptance_function
 
 data = None
 
@@ -22,10 +22,11 @@ def create_aux_vars(model, vars):
     model.addConstr(hire_vars * 24 >= vars.sum(axis = (1, 2, 3)))
     return hire_vars
 
-def run(model, vars):
+def run(model, vars, vars_auxiliary):
     r = 0
-    D = 3
+    D = 84
     for shift in range(SHIFTS):
+        print(f"Calculating for {shift = }")
         # Check if this is the last shift of the day
         if shift % 3 == 0:
             while r < shift + D and r < SHIFTS:
@@ -41,8 +42,11 @@ def run(model, vars):
             print("Model cannot be solved")
             exit(0)
 
+        acp = get_acceptance_function(model, vars, vars_auxiliary)    
+        result = optimize_delta(model, vars, vars_auxiliary, acp)
+
         # Lock current choice
-        model.addConstr(vars[:, shift, :, :] == (vars.x[:, shift, :, :] + 0.2).astype(int))
+        model.addConstr(vars[:, shift, :, :] == (result[:, shift, :, :] + 0.2).astype(int))
 
 def print_output(result):
     result.sort(key = lambda x: x[1])
@@ -66,7 +70,7 @@ def main():
     resolve_constraints(model, vars, data)
     add_objective_func(model, vars, vars_auxiliary, data)
 
-    run(model, vars)
+    run(model, vars, vars_auxiliary)
 
     result = (vars.x + 0.2).astype(int).nonzero()
     result_zip = list(zip(*result))
