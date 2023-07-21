@@ -7,4 +7,8 @@ ALLOWED_DAYS = 24
 SHIFTS = 28 * 3
 JOBS = 3 
 
-JOBLIST = ["Rot", "Pallet", "May_dong_hop"]
+JOBLIST = ["Rot", "May_dong_hop", "Pallet"]
+
+# --- Parameters --- #
+
+WAGE = (1600, 10)

@@ -6,7 +6,13 @@ def add_hourly_wage(model, vars, data):
 
     return vars.sum() * hourly_wage
 
-def add_objective_func(model, vars, data):
+def add_constant_wage(model, vars, data):
+    starting_wage = data.starting_wage
+
+    return vars.sum() * starting_wage
+
+def add_objective_func(model, vars, vars_aux, data):
+    starting_expr = add_constant_wage(model, vars_aux, data)
     hourly_expr = add_hourly_wage(model, vars, data)
 
-    model.setObjectiveN(hourly_expr, 0, weight = 1)
+    model.setObjectiveN(starting_expr + hourly_expr, 0, weight = 1)
