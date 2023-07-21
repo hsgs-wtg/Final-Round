@@ -9,6 +9,7 @@ from dataset import Dataset
 
 from constraints import resolve_constraints, constraint_cardinality
 from objective import add_objective_func
+from balance import optimize_delta, get_acceptance_function
 
 data = None
 vision = 1 # day(s)
@@ -20,17 +21,14 @@ def load_input(test, subtask):
 
 def create_aux_vars(model, vars):
     hire_vars = model.addMVar(shape = (data.workers_count), vtype = GRB.BINARY)
-    
-    model.addConstr(
-        hire_vars * 24 >= vars.sum(axis = (1, 2, 3))
-    )
-
+    model.addConstr(hire_vars * 24 >= vars.sum(axis = (1, 2, 3)))
     return hire_vars
 
-def run(model, vars):
+def run(model, vars, vars_auxiliary):
     r = 0
     D = vision * 3
     for shift in range(SHIFTS):
+        print(f"Calculating for {shift = }")
         # Check if this is the last shift of the day
         if shift % 3 == 0:
             while r < shift + D and r < SHIFTS:
@@ -46,8 +44,11 @@ def run(model, vars):
                 print("Solution not found")
                 exit(0)
 
+        acp = get_acceptance_function(model, vars, vars_auxiliary)    
+        result = optimize_delta(model, vars, vars_auxiliary, acp)
+
         # Lock current choice
-        model.addConstr(vars[:, shift, :, :] == (vars.x[:, shift, :, :] + 0.2).astype(int))
+        model.addConstr(vars[:, shift, :, :] == (result[:, shift, :, :] + 0.2).astype(int))
 
 def print_output(result, filename = "result.txt"):
     result.sort(key = lambda x: x[1])
@@ -97,7 +98,7 @@ def main():
     resolve_constraints(model, vars, data)
     add_objective_func(model, vars, vars_auxiliary, data)
 
-    run(model, vars)
+    run(model, vars, vars_auxiliary)
 
     result = (vars.x + 0.2).astype(int).nonzero()
     result_zip = list(zip(*result))
