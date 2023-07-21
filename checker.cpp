@@ -4,8 +4,8 @@ using namespace std;
 const int SHIFT_COUNT = 28*3;
 const int REQUIREMENT_COUNT = 3;
 
-const int TASK = 1;
-const int PIPELINE_COUNT = 1;
+const int TASK = 2;
+const int PIPELINE_COUNT = 3;
 const string SUBTASK = "a";
 
 const string FILE_DIR = "data/duLieu" + to_string(TASK) + "/";
@@ -173,6 +173,8 @@ struct Pipeline{
     }
 
     bool check_24_days(){
+        int avgcount = 0;
+        float avgsum = 0;
         for(int i = 0; i < x.size(); i++){
             int sum = 0;
             for(int j = 0; j < SHIFT_COUNT; j++){
@@ -182,11 +184,19 @@ struct Pipeline{
                     }
                 }
             }
+            if(sum){
+                avgsum += sum;
+                avgcount++;
+            }
             if(sum > MAX_WORK_DAY){
                 cout << i << endl;
                 return false;
             }
         }
+
+        cout << "Count: " << avgcount << endl;
+        cout << "Average: " << avgsum/avgcount << endl;
+
         return true;
     }
 
@@ -199,6 +209,9 @@ struct Pipeline{
                         sum += x[i][j][Q[j][k]][l];
                     }
                     if(r[Q[j][k]][l] > sum)return false;
+                    else if(r[Q[j][k]][l] < sum){
+                        cout << "bruh" << endl;
+                    }
                 }
             }
         }
