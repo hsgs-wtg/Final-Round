@@ -4,8 +4,9 @@ using namespace std;
 const int SHIFT_COUNT = 28*3;
 const int REQUIREMENT_COUNT = 3;
 
-const int TASK = 2;
-const int PIPELINE_COUNT = 3;
+const int TASK = 1;
+const int PIPELINE_COUNT = 1;
+const int HOURS_PER_SHIFT = 8;
 const string SUBTASK = "a";
 
 const string FILE_DIR = "data/duLieu" + to_string(TASK) + "/";
@@ -28,6 +29,9 @@ struct Pipeline{
     vector<vector<vector<bool>>> A;
     vector<vector<int>> r;
     vector<vector<int>> Q;
+    vector<vector<float>> W;
+    vector<float> U;
+    vector<float> S;
     void read_number_of_people(){
         ifstream cin(FILE_DIR + "01_nhan_su.txt");
 
@@ -88,18 +92,51 @@ struct Pipeline{
         fgets(str, sizeof(str), ptr);
 
         Q.resize(SHIFT_COUNT);
+        W.resize(SHIFT_COUNT);
+
+        for(auto &vec: W)vec.assign(PIPELINE_COUNT, 0);
 
         int yy, mm, dd, hh, mn, ss;
         while(fscanf(ptr, "%d-%d-%d %d:%d:%d; ", &yy, &mm, &dd, &hh, &mn, &ss) > 0){
             int l = (dd - 2)*3 + 2;
             for(auto v: TIME_FRAME)l += (hh >= v);
+            int h1 = hh, d1 = dd;
             fscanf(ptr, "%d-%d-%d %d:%d:%d", &yy, &mm, &dd, &hh, &mn, &ss);
             int r = (dd-2)*3+2;
-
-
+            int h2 = hh, d2 = dd;
             for(auto v: TIME_FRAME)r += (hh > v);
             for(int i = l; i <= r; i++){
                 Q[i].push_back(index);
+            }
+            if(l == r){
+                if(d1 < d2)W[l][index] += float(24-h1+h2)/HOURS_PER_SHIFT;
+                else W[l][index] += float(h2-h1)/HOURS_PER_SHIFT;
+            }
+
+            else{
+                if(h1 >= 22){
+                    W[l][index] += float(30-h1)/HOURS_PER_SHIFT;
+                }
+                else{
+                    for(auto v: TIME_FRAME)if(v > h1){
+                        W[l][index] += float(v - h1)/HOURS_PER_SHIFT;
+                        break;
+                    }
+                }
+                l++;
+                if(h2 <= 6){
+                    W[r][index] += float(h2+2)/HOURS_PER_SHIFT;
+                }
+                else{
+                    for(int i = 0; i < 3; i++){
+                        if(TIME_FRAME[2-i] < h2){
+                            W[r][index] += float(h2 - TIME_FRAME[2-i])/HOURS_PER_SHIFT;
+                        }
+                    }
+                }
+                r--;
+                for(int i = l; i <= r; i++)W[i][index] += 1;
+                
             }
 
             //cout << "Schedule: " << index << " " << l << " " << r << endl;
@@ -231,6 +268,10 @@ struct Pipeline{
             read_schedule(i);
         }
 
+        for(int i = 0; i < SHIFT_COUNT; i++){
+            for(int j = 0; j < PIPELINE_COUNT; j++)cout << "W[" << i << "][" << j << "] = " << W[i][j] << endl;
+        }
+
         cout << "Finished reading schedule" << endl;
         
         for(int i = 0; i < PIPELINE_COUNT; i++){
@@ -285,6 +326,36 @@ struct Pipeline{
         return good;
     }
 
+    void dissat_check(){
+        cout << "dissat_values: " << endl;
+        U.assign(SHIFT_COUNT, 1);
+        for(int i = 6; i+5 < SHIFT_COUNT; i+=21){
+            for(int j = i; j < i+3; j++)U[j]*=1.1;
+            for(int j = i+3; j < i+6; j++)U[j]*=1.7;
+        }
+
+        for(int i = 2; i < SHIFT_COUNT; i+=3){
+            U[i]*=1.5;
+        }
+
+        for(int i = 0; i < x.size(); i++){
+            float sum = 0;
+            for(int j = 0; j < SHIFT_COUNT; j++){
+                for(int k = 0; k < PIPELINE_COUNT; k++){
+                    for(int l = 0; l < REQUIREMENT_COUNT; l++){
+                        sum += x[i][j][k][l]*W[j][k]*U[j];
+                    }
+                }
+            }
+            if(sum > 0)S.push_back(sum);
+        }
+        sort(S.begin(), S.end());
+        cout << "Min = " << S[0] << endl;
+        cout << "Max = " << S.back() << endl;
+        cout << "Min - Max = " << S.back() - S[0] << endl;
+        cout << "Avg = " << accumulate(S.begin(), S.end(), 0.0)/S.size() << endl;
+    }
+
 };
 
 Pipeline pipeline;
@@ -293,4 +364,5 @@ int main(){
     pipeline.read_input();
     pipeline.read_result();
     cout << pipeline.check() << endl;
+    pipeline.dissat_check();
 }
