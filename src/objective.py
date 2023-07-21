@@ -1,5 +1,6 @@
 import numpy as np
 import gurobipy as gp
+from gurobipy import GRB
 
 def add_hourly_wage(model, vars, data):
     hourly_wage = data.hourly_wage
@@ -15,4 +16,4 @@ def add_objective_func(model, vars, vars_aux, data):
     starting_expr = add_constant_wage(model, vars_aux, data)
     hourly_expr = add_hourly_wage(model, vars, data)
 
-    model.setObjectiveN(starting_expr + hourly_expr, 0, weight = 1)
+    model.setObjective(starting_expr + hourly_expr, GRB.MINIMIZE)

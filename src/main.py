@@ -20,7 +20,7 @@ def create_aux_vars(model, vars):
     hire_vars = model.addMVar(shape = (data.workers_count), vtype = GRB.BINARY)
     
     model.addConstr(
-        hire_vars * (10 ** 6) >= vars.sum(axis = (1, 2, 3))
+        hire_vars * 24 >= vars.sum(axis = (1, 2, 3))
     )
 
     return hire_vars
@@ -61,7 +61,7 @@ def main():
     env.setParam('OutputFlag', 0)
     env.start()
     model = gp.Model("job_scheduling_01", env = env)
-    
+
     vars = model.addMVar(shape = (data.workers_count, SHIFTS, data.pipeline, JOBS), vtype = GRB.BINARY)
 
     vars_auxiliary = create_aux_vars(model, vars)

@@ -81,7 +81,8 @@ struct Pipeline{
     }
     void read_schedule(int index){
 
-        const char* filename = (FILE_DIR + "lenh_san_xuat_Day_chuyen_" + to_string(index+1) + ".txt").c_str();
+        string f = (FILE_DIR + "lenh_san_xuat_Day_chuyen_" + to_string(index+1) + ".txt");
+        const char* filename = f.c_str();
         FILE* ptr = fopen(filename, "r");
         char str[40];
         fgets(str, sizeof(str), ptr);
@@ -94,10 +95,14 @@ struct Pipeline{
             for(auto v: TIME_FRAME)l += (hh >= v);
             fscanf(ptr, "%d-%d-%d %d:%d:%d", &yy, &mm, &dd, &hh, &mn, &ss);
             int r = (dd-2)*3+2;
+
+
             for(auto v: TIME_FRAME)r += (hh > v);
             for(int i = l; i <= r; i++){
                 Q[i].push_back(index);
             }
+
+            //cout << "Schedule: " << index << " " << l << " " << r << endl;
         }
 
 
@@ -111,7 +116,7 @@ struct Pipeline{
         int id;
 
         while(fscanf(ptr, "V%d\n", &id) > 0){
-            cout << "V" << id << " " << index << " " << job << "\n";
+            //cout << "V" << id << " " << index << " " << job << "\n";
             A[id-1][index][job] = 1;
         }
 
@@ -127,7 +132,7 @@ struct Pipeline{
                 for(int k = 0; k < PIPELINE_COUNT; k++){
                     for(int l = 0; l < REQUIREMENT_COUNT; l++){
                         if(x[i][j][k][l] > A[i][k][l]){
-                            cout << i << " " << j << " " << k << " " << l << endl;
+                            //cout << i << " " << j << " " << k << " " << l << endl;
                             good = false;
                         }
                     }
@@ -177,7 +182,10 @@ struct Pipeline{
                     }
                 }
             }
-            if(sum > 24)return false;
+            if(sum > MAX_WORK_DAY){
+                cout << i << endl;
+                return false;
+            }
         }
         return true;
     }
