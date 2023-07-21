@@ -3,9 +3,12 @@ from consts import data_root_path, JOBS, JOBLIST, SHIFTS, WAGE
 
 
 class Dataset:
-    def __init__(self, folder):
+    def __init__(self, folder, subtask):
         assert folder in ("duLieu1", "duLieu2")
+        assert subtask in ("a", "b")
+
         self.data_path = data_root_path / folder
+        self.subtask = subtask
 
         pipelines = {
             "duLieu1": 1,
@@ -79,6 +82,9 @@ class Dataset:
                     if (start_hour < shift_start_time[0]):
                         self.shift_time[pipeline_idx-1][
                             3 * (start_day-2)+2] += shift_start_time[0]-start_hour
+
+                    if start_day > 28:
+                        continue
 
                     for i in range(3):
                         st = shift_start_time[i]

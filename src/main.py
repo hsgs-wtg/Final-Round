@@ -14,7 +14,7 @@ data = None
 def load_input():
     # Modify data
     global data
-    data = Dataset("duLieu1")
+    data = Dataset("duLieu2", "b")
 
 def create_aux_vars(model, vars):
     hire_vars = model.addMVar(shape = (data.workers_count), vtype = GRB.BINARY)
@@ -27,7 +27,7 @@ def create_aux_vars(model, vars):
 
 def run(model, vars):
     r = 0
-    D = 3
+    D = 12
     for shift in range(SHIFTS):
         # Check if this is the last shift of the day
         if shift % 3 == 0:
@@ -36,13 +36,15 @@ def run(model, vars):
                 constraint_cardinality(model, vars, data, r)
                 r += 1
 
-        # Process current shift
-        model.optimize()
+            # Process current shift
+            model.optimize()
 
-        # Check for error code
-        if model.status == GRB.INFEASIBLE:
-            print("Model cannot be solved")
-            exit(0)
+            # Check for error code
+            if model.status == GRB.INFEASIBLE:
+                print("Model cannot be solved")
+                exit(0)
+
+        # print(f"{shift=}, {model.solcount=}")
 
         # Lock current choice
         model.addConstr(vars[:, shift, :, :] == (vars.x[:, shift, :, :] + 0.2).astype(int))
