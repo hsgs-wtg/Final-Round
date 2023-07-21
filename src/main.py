@@ -45,7 +45,7 @@ def run(model, vars):
             exit(0)
 
         # Lock current choice
-        model.addConstr(vars[:, shift, :, :] == vars.x[:, shift, :, :])
+        model.addConstr(vars[:, shift, :, :] == (vars.x[:, shift, :, :] + 0.2).astype(int))
 
 def print_output(result):
     result.sort(key = lambda x: x[1])
