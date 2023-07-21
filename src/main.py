@@ -9,7 +9,8 @@ from dataset import Dataset
 
 from constraints import resolve_constraints, constraint_cardinality
 from objective import add_objective_func
-from balance import optimize_delta, get_acceptance_function
+from balance_weighted import BalanceWeighted
+from balance import BalanceUnweighted, get_acceptance_function
 
 data = None
 vision = 1 # day(s)
@@ -23,6 +24,50 @@ def create_aux_vars(model, vars):
     hire_vars = model.addMVar(shape = (data.workers_count), vtype = GRB.BINARY)
     model.addConstr(hire_vars * 24 >= vars.sum(axis = (1, 2, 3)))
     return hire_vars
+
+dissat = None
+dissat_functions = None
+
+def optimize_delta(model, vars, vars_auxiliary, acp):
+    last_accepted: np.ndarray = vars.x
+    iteration = 0
+    # breakpoint()
+    while True:
+        iteration += 1
+        print(f"{iteration = }")
+        avg_dissat, min_dissat, max_dissat = dissat.dissat_stats(
+            vars.x, vars_auxiliary)
+        print(dissat.dissat_stats(vars.x, vars_auxiliary))
+        delta = (max_dissat - min_dissat) * .9
+
+        lb = avg_dissat - delta/2
+        ub = avg_dissat + delta/2
+
+        constrs = []
+        # constr_ub = model.addConstrs(((df <= ub) for df in dissat_functions))
+        for df in dissat_functions:
+            constrs.append(
+                model.addConstr(df <= ub)
+            )
+        for df in dissat_functions:
+            constrs.append(
+                model.addConstr(df >= lb)
+            )
+        model.optimize()
+        model.remove(constrs)
+
+        if model.status != GRB.OPTIMAL:
+            print(f"Broke due to {model.status = }, {delta = }")
+            break
+        if not acp():
+            print(f"Broke due to not accepted, {delta = }")
+            break
+        if delta < 0.1:
+            print(f"{delta = } is feasible")
+
+        last_accepted = vars.x
+    return last_accepted
+
 
 def run(model, vars, vars_auxiliary):
     r = 0
@@ -44,11 +89,12 @@ def run(model, vars, vars_auxiliary):
                 print("Solution not found")
                 exit(0)
 
-        acp = get_acceptance_function(model, vars, vars_auxiliary)    
-        result = optimize_delta(model, vars, vars_auxiliary, acp)
+            acp = get_acceptance_function(model, vars, vars_auxiliary)    
+            result = optimize_delta(model, vars, vars_auxiliary, acp)
 
         # Lock current choice
         model.addConstr(vars[:, shift, :, :] == (result[:, shift, :, :] + 0.2).astype(int))
+    model.optimize()
 
 def print_output(result, filename = "result.txt"):
     result.sort(key = lambda x: x[1])
@@ -97,6 +143,10 @@ def main():
 
     resolve_constraints(model, vars, data)
     add_objective_func(model, vars, vars_auxiliary, data)
+
+    global dissat, dissat_functions
+    dissat = BalanceWeighted(data)
+    dissat_functions = dissat.calculate_dissat(vars)
 
     run(model, vars, vars_auxiliary)
 
