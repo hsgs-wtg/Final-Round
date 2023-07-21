@@ -83,6 +83,9 @@ class Dataset:
                         self.shift_time[pipeline_idx-1][
                             3 * (start_day-2)+2] += shift_start_time[0]-start_hour
 
+                    if start_day > 28:
+                        continue
+
                     for i in range(3):
                         st = shift_start_time[i]
                         en = shift_start_time[(i+1) % 3]+(i == 2)*24
