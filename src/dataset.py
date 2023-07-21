@@ -57,7 +57,7 @@ class Dataset:
                         self.with_skills[pipeline_idx-1][job_idx])
 
         # Load time of pipelines from lenh_san_xuat_Day_chuyen_?.txt
-        self.shift_time = np.ndarray(shape=(self.pipeline, SHIFTS))
+        self.shift_time = [[0] * SHIFTS for _ in range(self.pipeline)]
         for pipeline_idx in range(1, self.pipeline+1):
             with open(self.data_path / f"lenh_san_xuat_Day_chuyen_{pipeline_idx}.txt", "r") as f:
                 f.readline()  # Comment line
@@ -86,6 +86,8 @@ class Dataset:
 
                         self.shift_time[pipeline_idx-1][3*(start_day-1)+i] += max(
                             0, min(en, end_hour)-max(st, start_hour))
+
+        self.shift_time = np.array(self.shift_time)
 
         match str(self.data_path)[-1]:
             case "1":

@@ -61,7 +61,7 @@ def main():
     env.setParam('OutputFlag', 0)
     env.start()
     model = gp.Model("job_scheduling_01", env = env)
-    
+
     vars = model.addMVar(shape = (data.workers_count, SHIFTS, data.pipeline, JOBS), vtype = GRB.BINARY)
 
     vars_auxiliary = create_aux_vars(model, vars)
