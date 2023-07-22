@@ -4,10 +4,13 @@ using namespace std;
 const int SHIFT_COUNT = 28*3;
 const int REQUIREMENT_COUNT = 3;
 
-const int TASK = 1;
-const int PIPELINE_COUNT = 1;
+const int PIPELINE_TASK[3] = {0, 1, 3};
+
+int TASK = 1;
+int PIPELINE_COUNT = 1;
+string SUBTASK = "a";
+
 const int HOURS_PER_SHIFT = 8;
-const string SUBTASK = "a";
 
 const string FILE_DIR = "data/duLieu" + to_string(TASK) + "/";
 const string RESULT_DIR = "result/";
@@ -247,7 +250,7 @@ struct Pipeline{
                     }
                     if(r[Q[j][k]][l] > sum)return false;
                     else if(r[Q[j][k]][l] < sum){
-                        cout << "bruh" << endl;
+                        cout << "Number of worker exeeded" << endl;
                     }
                 }
             }
@@ -362,7 +365,10 @@ struct Pipeline{
 
 Pipeline pipeline;
 
-int main(){
+int main(int argc, char* argv[]){
+    TASK = atoi(argv[1]);
+    SUBTASK = argv[2];
+    PIPELINE_COUNT = PIPELINE_TASK[TASK];
     pipeline.read_input();
     pipeline.read_result();
     cout << pipeline.check() << endl;
