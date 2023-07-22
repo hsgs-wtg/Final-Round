@@ -11,10 +11,6 @@ int PIPELINE_COUNT = 1;
 string SUBTASK = "a";
 
 const int HOURS_PER_SHIFT = 8;
-const int TASK = 1;
-const int PIPELINE_COUNT = 1;
-const int HOURS_PER_SHIFT = 1;
-const string SUBTASK = "a";
 
 const string FILE_DIR = "data/duLieu" + to_string(TASK) + "/";
 const string RESULT_DIR = "result/";
