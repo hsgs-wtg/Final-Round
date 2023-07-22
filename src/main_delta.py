@@ -7,13 +7,13 @@ import sys
 from consts import SHIFTS, JOBS, JOBLIST, root_path
 from dataset import Dataset
 
-from constraints import resolve_constraints, constraint_cardinality
+from constraints import resolve_constraints, constraint_cardinality_strict
 from objective import add_objective_func
 from balance_weighted import BalanceWeighted
 from balance import BalanceUnweighted, get_acceptance_function
 
 data = None
-vision = 1  # day(s)
+vision = 2  # day(s)
 
 
 def load_input(test, subtask):
@@ -33,47 +33,7 @@ dissat_functions = None
 total_dissat = None
 
 
-def optimize_delta(model, vars, vars_auxiliary, acp):
-    last_accepted: np.ndarray = vars.x
-    iteration = 0
-    # breakpoint()
-    while True:
-        iteration += 1
-        print(f"{iteration = }")
-        avg_dissat, min_dissat, max_dissat = dissat.dissat_stats(
-            vars.x, vars_auxiliary)
-        print(dissat.dissat_stats(vars.x, vars_auxiliary))
-        delta = (max_dissat - min_dissat) * .9
-
-        lb = avg_dissat - delta/2
-        ub = avg_dissat + delta/2
-
-        constrs = []
-        for df in dissat_functions:
-            constrs.append(
-                model.addConstr(df <= ub)
-            )
-        for df in dissat_functions:
-            constrs.append(
-                model.addConstr(df >= lb)
-            )
-        model.optimize()
-        model.remove(constrs)
-
-        if model.status != GRB.OPTIMAL:
-            print(f"Broke due to {model.status = }, {delta = }")
-            break
-        if not acp():
-            print(f"Broke due to not accepted, {delta = }")
-            break
-        if delta < 0.1:
-            print(f"{delta = } is feasible")
-
-        last_accepted = vars.x
-    return last_accepted
-
-
-def run(model, vars, avg_shift, delta):
+def run(model, vars, tt_shift, delta):
     r = 0
     D = vision * 3
     acc = 0
@@ -83,10 +43,11 @@ def run(model, vars, avg_shift, delta):
         nonlocal constrs
         model.remove(constrs)
         constrs = []
+        worker_acc = acc / data.workers_count
         for df in dissat_functions:
-            constrs.append(model.addConstr(df + delta >= acc))
-            constrs.append(model.addConstr(df - delta <= acc))
-        constrs.append(model.addConstr(total_dissat == acc * data.workers_count))
+            constrs.append(model.addConstr(df + delta >= worker_acc))
+            constrs.append(model.addConstr(df - delta <= worker_acc))
+        # constrs.append(model.addConstr(total_dissat == acc))
 
     for shift in range(SHIFTS):
         print(f"Calculating for {shift = }")
@@ -94,22 +55,21 @@ def run(model, vars, avg_shift, delta):
         if shift % 3 == 0:
             while r < shift + D and r < SHIFTS:
                 # Load r
-                constraint_cardinality(model, vars, data, r)
-                acc += avg_shift[r]
+                constraint_cardinality_strict(model, vars, data, r)
+                acc += tt_shift[r]
                 r += 1
             refresh_avg()
+            # Process current shift
+            model.optimize()
 
-        # Process current shift
-        model.optimize()
-
-        # Check for error code
-        if model.status == GRB.INFEASIBLE:
-            print("Solution not found")
-            exit(0)
+            # Check for error code
+            if model.status == GRB.INFEASIBLE:
+                print("Solution not found")
+                exit(0)
+            print(f"{model.ObjVal = }")
 
         # Lock current choice
-        model.addConstr(vars[:, shift, :, :] == (
-            vars.x[:, shift, :, :] + 0.2).astype(int))
+        model.addConstr(vars[:, shift, :, :] == (vars.x[:, shift, :, :] + 0.2).astype(int))
     model.optimize()
 
 
@@ -154,7 +114,7 @@ def main():
     load_input(test, subtask)
 
     env = gp.Env(empty=True)
-    # env.setParam('OutputFlag', 0)
+    env.setParam('OutputFlag', 0)
     # env.setParam('Seed', 24)
     env.start()
     model = gp.Model(f"job_scheduling_{test}_{subtask}", env=env)
@@ -171,12 +131,12 @@ def main():
     dissat_functions = dissat.calculate_dissat(vars)
     total_dissat = dissat_functions.sum()
 
-    avg_shift = dissat.get_average(data)
+    tt_shift = dissat.get_tt_dissat(data)
     delta = model.addVar(vtype=GRB.CONTINUOUS)
 
     model.setObjective(delta, GRB.MINIMIZE)
 
-    run(model, vars, avg_shift, delta)
+    run(model, vars, tt_shift, delta)
 
     result = (vars.x + 0.2).astype(int).nonzero()
     result_zip = list(zip(*result))
