@@ -361,6 +361,7 @@ struct Pipeline{
                     }
                 }
             }
+            S.push_back(sum);
         }
         sort(S.begin(), S.end());
 
