@@ -13,7 +13,7 @@ from balance_weighted import BalanceWeighted
 from balance import BalanceUnweighted, get_acceptance_function
 
 data = None
-vision = 2  # day(s)
+vision = 1  # day(s)
 
 
 def load_input(test, subtask):
