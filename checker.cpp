@@ -11,6 +11,10 @@ int PIPELINE_COUNT = 1;
 string SUBTASK = "a";
 
 const int HOURS_PER_SHIFT = 8;
+const int TASK = 1;
+const int PIPELINE_COUNT = 1;
+const int HOURS_PER_SHIFT = 1;
+const string SUBTASK = "a";
 
 const string FILE_DIR = "data/duLieu" + to_string(TASK) + "/";
 const string RESULT_DIR = "result/";
@@ -26,6 +30,9 @@ map<string, int> JOB_INDEX = {
 };
 
 const int TIME_FRAME[3] = {6, 14, 22};
+
+const int C_s = 1600000;
+const int C_h = 10000;
 
 struct Pipeline{
     vector<vector<vector<vector<bool>>>> x;
@@ -107,10 +114,12 @@ struct Pipeline{
             fscanf(ptr, "%d-%d-%d %d:%d:%d", &yy, &mm, &dd, &hh, &mn, &ss);
             int r = (dd-2)*3+2;
             int h2 = hh, d2 = dd;
+
             for(auto v: TIME_FRAME)r += (hh > v);
             for(int i = l; i <= r; i++){
                 Q[i].push_back(index);
             }
+
             if(l == r){
                 if(d1 < d2)W[l][index] += float(24-h1+h2)/HOURS_PER_SHIFT;
                 else W[l][index] += float(h2-h1)/HOURS_PER_SHIFT;
@@ -134,11 +143,12 @@ struct Pipeline{
                     for(int i = 0; i < 3; i++){
                         if(TIME_FRAME[2-i] < h2){
                             W[r][index] += float(h2 - TIME_FRAME[2-i])/HOURS_PER_SHIFT;
+                            break;
                         }
                     }
                 }
                 r--;
-                for(int i = l; i <= r; i++)W[i][index] += 1;
+                for(int i = l; i <= r; i++)W[i][index] += 8/HOURS_PER_SHIFT;
                 
             }
 
@@ -191,7 +201,9 @@ struct Pipeline{
                         sum += x[i][j][k][l] + x[i][j+1][k][l];
                     }
                 }
-                if(sum > 1)return false;
+                if(sum > 1){
+                    return false;
+                }
             }
         }
         return true;
@@ -272,8 +284,9 @@ struct Pipeline{
         }
 
         for(int i = 0; i < SHIFT_COUNT; i++){
-            for(int j = 0; j < PIPELINE_COUNT; j++)cout << "W[" << i << "][" << j << "] = " << W[i][j] << endl;
+            for(int j = 0; j < PIPELINE_COUNT; j++)cout << W[i][j] << " ";
         }
+        cout << endl;
 
         cout << "Finished reading schedule" << endl;
         
@@ -294,7 +307,6 @@ struct Pipeline{
 
         while(scanf("%d.%d.%d Ca_%d V%d Day_chuyen_%d %s", &dd, &mm, &yy, &shift, &index, &pipeline, c) > 0){
             string job(c);
-            //cout << dd << endl;
             x[index-1][(dd - 1)*3 + shift - 1][pipeline-1][JOB_INDEX[job]] = 1;
         }
     }
@@ -341,24 +353,51 @@ struct Pipeline{
             U[i]*=1.5;
         }
 
+        //for(auto v: U)cout << v << endl;
+
+
+
         for(int i = 0; i < x.size(); i++){
             float sum = 0;
             for(int j = 0; j < SHIFT_COUNT; j++){
                 for(int k = 0; k < PIPELINE_COUNT; k++){
                     for(int l = 0; l < REQUIREMENT_COUNT; l++){
                         if(x[i][j][k][l]){
-                            sum += x[i][j][k][l]*(W[j][k] + 0.25)*U[j];
+                            sum += x[i][j][k][l]*(W[j][k] + 2.0/HOURS_PER_SHIFT)*U[j];
                         }
                     }
                 }
             }
-            if(sum > 0)S.push_back(sum);
+            S.push_back(sum);
         }
         sort(S.begin(), S.end());
+
+        float avg = accumulate(S.begin(), S.end(), 0.0)/S.size();
+
+        cout << "sum = " << avg*S.size() << endl;
+
         cout << "Min = " << S[0] << endl;
         cout << "Max = " << S.back() << endl;
         cout << "Min - Max = " << S.back() - S[0] << endl;
-        cout << "Avg = " << accumulate(S.begin(), S.end(), 0.0)/S.size() << endl;
+        cout << "Avg = " << avg << endl;
+        cout << "delta = " << max(avg - S[0], S.back() - avg) << endl;
+    }
+
+    int get_cost(){
+        int total_cost = 0;
+        for(int i = 0; i < x.size(); i++){
+            int sum = 0;
+            for(int j = 0; j < SHIFT_COUNT; j++){
+                for(int k = 0; k < PIPELINE_COUNT; k++){
+                    for(int l = 0; l < REQUIREMENT_COUNT; l++){
+                        sum += x[i][j][k][l];
+                        total_cost += x[i][j][k][l]*W[j][k]*C_h;
+                    }
+                }
+            }
+            if(sum)total_cost += C_s;
+        }
+        return total_cost;
     }
 
 };
@@ -373,4 +412,5 @@ int main(int argc, char* argv[]){
     pipeline.read_result();
     cout << pipeline.check() << endl;
     pipeline.dissat_check();
+    cout << "Cost = " << pipeline.get_cost() << endl;
 }

@@ -81,7 +81,7 @@ class Dataset:
 
                     if (start_hour < shift_start_time[0]):
                         self.shift_time[pipeline_idx-1][
-                            3 * (start_day-2)+2] += shift_start_time[0]-start_hour
+                            3 * (start_day-2)+2] += min(shift_start_time[0], end_hour) - start_hour
 
                     if start_day > 28:
                         continue
@@ -100,3 +100,4 @@ class Dataset:
                 self.pipeline_req = ((1, 2, 2), )
             case "2":
                 self.pipeline_req = ((1, 2, 2), (2, 2, 2), (1, 2, 3))
+        self.pipeline_req = np.array(self.pipeline_req)

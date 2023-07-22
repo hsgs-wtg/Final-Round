@@ -39,6 +39,17 @@ def constraint_cardinality(model, vars, data, shift):
             worker_req = data.pipeline_req[pipeline_idx][job_idx]
             model.addConstr(skill_workers.sum() >= t * worker_req)
 
+
+def constraint_cardinality_strict(model, vars, data, shift):
+    for pipeline_idx in range(data.pipeline):
+        t = data.shift_time[pipeline_idx][shift] > 0
+        if not t: continue
+        for job_idx in range(JOBS):
+            skill_workers = vars[data.with_skills[pipeline_idx][job_idx],
+                                    shift, pipeline_idx, job_idx]
+            worker_req = data.pipeline_req[pipeline_idx][job_idx]
+            model.addConstr(skill_workers.sum() == t * worker_req)
+
 # Resolve constraints
 
 def resolve_constraints(model, vars, data):
