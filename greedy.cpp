@@ -7,7 +7,7 @@ const int REQUIREMENT_COUNT = 3;
 const int TASK = 1;
 const int PIPELINE_COUNT = 1;
 const int HOURS_PER_SHIFT = 8;
-const string SUBTASK = "a";
+const string SUBTASK = "b";
 
 const string FILE_DIR = "data/duLieu" + to_string(TASK) + "/";
 const string RESULT_DIR = "result/";
@@ -247,7 +247,7 @@ struct Pipeline{
                     }
                     if(r[Q[j][k]][l] > sum)return false;
                     else if(r[Q[j][k]][l] < sum){
-                        cout << "bruh" << endl;
+                        cout << "Not enough worker" << endl;
                     }
                 }
             }
@@ -352,38 +352,40 @@ struct Pipeline{
         sort(S.begin(), S.end());
         cout << "Min = " << S[0] << endl;
         cout << "Max = " << S.back() << endl;
-        cout << "Min - Max = " << S.back() - S[0] << endl;
+        cout << "Max - Min = " << S.back() - S[0] << endl;
         cout << "Avg = " << accumulate(S.begin(), S.end(), 0.0)/S.size() << endl;
     }
     void greedy(){
         vector<int> sum((int)x.size());
         auto check = [&](int ci,int cj,int ck,int cl){
             if(!A[ci][ck][cl]) return false;
-            if(cj%SHIFT_COUNT==0 && cj){
+            if(cj%3==0 && cj){
                 for(int k=0;k<PIPELINE_COUNT;k++) 
                     for(int l=0;l<REQUIREMENT_COUNT;l++) 
                         if(x[ci][cj-1][k][l]) return false;
             }
-
-            int d=cj/SHIFT_COUNT;
-            for(int j=0;j<SHIFT_COUNT;j++) 
+            int d=(cj/3)*3;
+            for(int j=0;j<3;j++) 
                 for(int k=0;k<PIPELINE_COUNT;k++) 
                     for(int l=0;l<REQUIREMENT_COUNT;l++) 
-                        if(x[ci][d*3+j][k][l]) return false;
-
+                        if(x[ci][d+j][k][l]) return false;
             if(sum[ci]==24) return false;
             return true;
         };
-        for(int j=0;j<84;j++){
-            for(int k=0;k<PIPELINE_COUNT;k++) for(int l=0;l<REQUIREMENT_COUNT;l++){
+        for(int j=0;j<SHIFT_COUNT;j++){
+            for(int k:Q[j]) for(int l=0;l<REQUIREMENT_COUNT;l++){
                 int cnt=0;
                 for(int i=0;i<x.size();i++) if(check(i,j,k,l)){
                     cnt++;x[i][j][k][l]=1;sum[i]++;
                     if(cnt==r[k][l]) break;
                 }
-                if(cnt!=r[k][l]) cout << "bruhbruh" << endl;
+                if(cnt!=r[k][l]){
+                    cout << "No solution" << endl;
+                    return;
+                }
             }
         }
+        cout << "There is a solution" << endl;
     }
 };
 
