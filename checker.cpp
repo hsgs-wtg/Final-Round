@@ -343,7 +343,9 @@ struct Pipeline{
             for(int j = 0; j < SHIFT_COUNT; j++){
                 for(int k = 0; k < PIPELINE_COUNT; k++){
                     for(int l = 0; l < REQUIREMENT_COUNT; l++){
-                        sum += x[i][j][k][l]*W[j][k]*U[j];
+                        if(x[i][j][k][l]){
+                            sum += x[i][j][k][l]*(W[j][k] + 0.25)*U[j];
+                        }
                     }
                 }
             }
