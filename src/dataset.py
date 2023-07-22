@@ -100,3 +100,4 @@ class Dataset:
                 self.pipeline_req = ((1, 2, 2), )
             case "2":
                 self.pipeline_req = ((1, 2, 2), (2, 2, 2), (1, 2, 3))
+        self.pipeline_req = np.array(self.pipeline_req)

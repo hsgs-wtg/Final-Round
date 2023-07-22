@@ -13,20 +13,25 @@ from balance_weighted import BalanceWeighted
 from balance import BalanceUnweighted, get_acceptance_function
 
 data = None
-vision = 1 # day(s)
+vision = 1  # day(s)
+
 
 def load_input(test, subtask):
     # Modify data
     global data
     data = Dataset(f"duLieu{test}", subtask)
 
+
 def create_aux_vars(model, vars):
-    hire_vars = model.addMVar(shape = (data.workers_count), vtype = GRB.BINARY)
-    model.addConstr(hire_vars * 24 >= vars.sum(axis = (1, 2, 3)))
+    hire_vars = model.addMVar(shape=(data.workers_count), vtype=GRB.BINARY)
+    model.addConstr(hire_vars * 24 >= vars.sum(axis=(1, 2, 3)))
     return hire_vars
+
 
 dissat = None
 dissat_functions = None
+total_dissat = None
+
 
 def optimize_delta(model, vars, vars_auxiliary, acp):
     last_accepted: np.ndarray = vars.x
@@ -68,9 +73,21 @@ def optimize_delta(model, vars, vars_auxiliary, acp):
     return last_accepted
 
 
-def run(model, vars, vars_auxiliary):
+def run(model, vars, avg_shift, delta):
     r = 0
     D = vision * 3
+    acc = 0
+    constrs = []
+
+    def refresh_avg():
+        nonlocal constrs
+        model.remove(constrs)
+        constrs = []
+        for df in dissat_functions:
+            constrs.append(model.addConstr(df + delta >= acc))
+            constrs.append(model.addConstr(df - delta <= acc))
+        constrs.append(model.addConstr(total_dissat == acc * data.workers_count))
+
     for shift in range(SHIFTS):
         print(f"Calculating for {shift = }")
         # Check if this is the last shift of the day
@@ -78,34 +95,37 @@ def run(model, vars, vars_auxiliary):
             while r < shift + D and r < SHIFTS:
                 # Load r
                 constraint_cardinality(model, vars, data, r)
+                acc += avg_shift[r]
                 r += 1
+            refresh_avg()
 
-            # Process current shift
-            model.optimize()
+        # Process current shift
+        model.optimize()
 
-            # Check for error code
-            if model.status == GRB.INFEASIBLE:
-                print("Solution not found")
-                exit(0)
-
-            acp = get_acceptance_function(model, vars, vars_auxiliary)    
-            result = optimize_delta(model, vars, vars_auxiliary, acp)
+        # Check for error code
+        if model.status == GRB.INFEASIBLE:
+            print("Solution not found")
+            exit(0)
 
         # Lock current choice
-        model.addConstr(vars[:, shift, :, :] == (result[:, shift, :, :] + 0.2).astype(int))
+        model.addConstr(vars[:, shift, :, :] == (
+            vars.x[:, shift, :, :] + 0.2).astype(int))
     model.optimize()
 
-def print_output(result, filename = "result.txt"):
-    result.sort(key = lambda x: x[1])
+
+def print_output(result, filename="result.txt"):
+    result.sort(key=lambda x: x[1])
     answers = []
     for assignment in result:
         person, shift, pipeline, job = assignment
         day, group = shift // 3, shift % 3
-        answers.append(f"{day+1:02d}.06.2023 Ca_{group+1} V{person+1:02d} Day_chuyen_{pipeline+1} {JOBLIST[job]}")
-    
+        answers.append(
+            f"{day+1:02d}.06.2023 Ca_{group+1} V{person+1:02d} Day_chuyen_{pipeline+1} {JOBLIST[job]}")
+
     with open(Path(root_path / "result" / filename), "w+") as f:
         f.write("\n".join(answers))
         f.write("\n")
+
 
 def usage():
     print("Usage: python src/main.py DATA SUBTASK [VISION]")
@@ -114,7 +134,9 @@ def usage():
     print("VISION [int]: number of days that can be see ahead")
     exit(0)
 
+
 def main():
+
     if len(sys.argv) < 3:
         usage()
 
@@ -131,23 +153,30 @@ def main():
 
     load_input(test, subtask)
 
-    env = gp.Env(empty = True)
-    env.setParam('OutputFlag', 0)
+    env = gp.Env(empty=True)
+    # env.setParam('OutputFlag', 0)
+    # env.setParam('Seed', 24)
     env.start()
-    model = gp.Model(f"job_scheduling_{test}_{subtask}", env = env)
+    model = gp.Model(f"job_scheduling_{test}_{subtask}", env=env)
 
-    vars = model.addMVar(shape = (data.workers_count, SHIFTS, data.pipeline, JOBS), vtype = GRB.BINARY)
+    vars = model.addMVar(shape=(data.workers_count, SHIFTS,
+                         data.pipeline, JOBS), vtype=GRB.BINARY)
 
     vars_auxiliary = create_aux_vars(model, vars)
 
     resolve_constraints(model, vars, data)
-    add_objective_func(model, vars, vars_auxiliary, data)
 
-    global dissat, dissat_functions
+    global dissat, dissat_functions, total_dissat
     dissat = BalanceWeighted(data)
     dissat_functions = dissat.calculate_dissat(vars)
+    total_dissat = dissat_functions.sum()
 
-    run(model, vars, vars_auxiliary)
+    avg_shift = dissat.get_average(data)
+    delta = model.addVar(vtype=GRB.CONTINUOUS)
+
+    model.setObjective(delta, GRB.MINIMIZE)
+
+    run(model, vars, avg_shift, delta)
 
     result = (vars.x + 0.2).astype(int).nonzero()
     result_zip = list(zip(*result))
