@@ -71,6 +71,7 @@ def run(model, vars, tt_shift, delta):
         # Lock current choice
         model.addConstr(vars[:, shift, :, :] == (vars.x[:, shift, :, :] + 0.2).astype(int))
     model.optimize()
+    print(f"{model.ObjVal = }")
 
 
 def print_output(result, filename="result.txt"):
