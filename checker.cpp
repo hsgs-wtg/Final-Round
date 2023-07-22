@@ -10,9 +10,9 @@ int TASK = 1;
 int PIPELINE_COUNT = 1;
 string SUBTASK = "a";
 
-const int HOURS_PER_SHIFT = 8;
+const int HOURS_PER_SHIFT = 1;
 
-const string FILE_DIR = "data/duLieu" + to_string(TASK) + "/";
+string FILE_DIR = "data/duLieu" + to_string(TASK) + "/";
 const string RESULT_DIR = "result/";
 
 const int MAX_WORK_DAY = 24;
@@ -404,6 +404,8 @@ int main(int argc, char* argv[]){
     TASK = atoi(argv[1]);
     SUBTASK = argv[2];
     PIPELINE_COUNT = PIPELINE_TASK[TASK];
+    FILE_DIR = "data/duLieu" + to_string(TASK) + "/";
+
     pipeline.read_input();
     pipeline.read_result();
     cout << pipeline.check() << endl;
