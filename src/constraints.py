@@ -39,11 +39,6 @@ def constraint_cardinality(model, vars, data, shift):
             worker_req = data.pipeline_req[pipeline_idx][job_idx]
             model.addConstr(skill_workers.sum() >= t * worker_req)
 
-# Constraint 5: Fired worker 
-def constraint_xxx(model, vars, shift_time):
-    pass
-
-
 # Resolve constraints
 
 def resolve_constraints(model, vars, data):
