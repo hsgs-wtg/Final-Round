@@ -4,8 +4,8 @@ from gurobipy import GRB
 from consts import SHIFTS
 
 def exclude_dissat(dissat, vars_auxiliary):
-    hired = (vars_auxiliary.x + 0.2).astype(int).nonzero()
-    dissat_active = dissat[hired]
+    # hired = (vars_auxiliary.x + 0.2).astype(int).nonzero()
+    dissat_active = dissat
     return dissat_active, dissat_active.shape[0]
 
 def get_acceptance_function(model, vars, vars_auxiliary):

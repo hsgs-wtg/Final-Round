@@ -11,4 +11,4 @@ JOBLIST = ["Rot", "May_dong_hop", "Pallet"]
 
 # --- Parameters --- #
 
-WAGE = (1600, 10)
+WAGE = (0, 10)
