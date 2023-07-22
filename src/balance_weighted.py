@@ -38,7 +38,8 @@ class BalanceWeighted:
         return avg_dissat, cr_dissat.min(), cr_dissat.max()
 
     def get_average(self, data):
+        # pipeline
         pipeline_sum = data.pipeline_req.sum(axis=1)
         pc = pipeline_sum.shape[0]
-        total = np.sum(self.shift_pl_dissat[p::pc] * pipeline_sum[p] for p in range(pc))
+        total = np.sum([self.shift_pl_dissat[p::pc].flatten() * pipeline_sum[p] for p in range(pc)], axis=0)
         return total/data.workers_count

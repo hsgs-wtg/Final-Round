@@ -32,6 +32,7 @@ dissat = None
 dissat_functions = None
 total_dissat = None
 
+
 def optimize_delta(model, vars, vars_auxiliary, acp):
     last_accepted: np.ndarray = vars.x
     iteration = 0
@@ -77,6 +78,7 @@ def run(model, vars, avg_shift, delta):
     D = vision * 3
     acc = 0
     constrs = []
+
     def refresh_avg():
         nonlocal constrs
         model.remove(constrs)
@@ -84,8 +86,8 @@ def run(model, vars, avg_shift, delta):
         for df in dissat_functions:
             constrs.append(model.addConstr(df + delta >= acc))
             constrs.append(model.addConstr(df - delta <= acc))
-        constrs.append(model.addConstr(total_dissat == acc))
-        
+        constrs.append(model.addConstr(total_dissat == acc * data.workers_count))
+
     for shift in range(SHIFTS):
         print(f"Calculating for {shift = }")
         # Check if this is the last shift of the day
@@ -95,7 +97,7 @@ def run(model, vars, avg_shift, delta):
                 constraint_cardinality(model, vars, data, r)
                 acc += avg_shift[r]
                 r += 1
-            # refresh_avg()
+            refresh_avg()
 
         # Process current shift
         model.optimize()
@@ -153,6 +155,7 @@ def main():
 
     env = gp.Env(empty=True)
     # env.setParam('OutputFlag', 0)
+    # env.setParam('Seed', 24)
     env.start()
     model = gp.Model(f"job_scheduling_{test}_{subtask}", env=env)
 
@@ -167,15 +170,13 @@ def main():
     dissat = BalanceWeighted(data)
     dissat_functions = dissat.calculate_dissat(vars)
     total_dissat = dissat_functions.sum()
-    
+
     avg_shift = dissat.get_average(data)
-    delta = model.addVar(vtype = GRB.CONTINUOUS)
+    delta = model.addVar(vtype=GRB.CONTINUOUS)
 
     model.setObjective(delta, GRB.MINIMIZE)
 
     run(model, vars, avg_shift, delta)
-
-    # run(model, vars, vars_auxiliary)
 
     result = (vars.x + 0.2).astype(int).nonzero()
     result_zip = list(zip(*result))
